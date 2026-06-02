@@ -1,0 +1,62 @@
+{
+  "fields": {
+    "name": {
+      "visible": true,
+      "required": true,
+      "label": "Họ và tên"
+    },
+    "phone": {
+      "visible": true,
+      "required": true,
+      "label": "Số điện thoại"
+    },
+    "email": {
+      "visible": true,
+      "required": false,
+      "label": "Địa chỉ Email"
+    },
+    "address": {
+      "visible": true,
+      "required": false,
+      "label": "Địa chỉ cần chăm sóc / khảo sát"
+    },
+    "area": {
+      "visible": true,
+      "required": false,
+      "label": "Diện tích sân vườn / văn phòng (m²)"
+    },
+    "services": {
+      "visible": true,
+      "required": false,
+      "label": "Dịch vụ quan tâm"
+    },
+    "message": {
+      "visible": true,
+      "required": false,
+      "label": "Yêu cầu bổ sung"
+    }
+  },
+  "notifications": {
+    "telegram": {
+      "enabled": false,
+      "botToken": "",
+      "chatId": ""
+    },
+    "webhook": {
+      "enabled": false,
+      "url": ""
+    },
+    "email": {
+      "enabled": false,
+      "destination": ""
+    }
+  },
+  "info": {
+    "companyName": "Cây Xanh Thủ Đô",
+    "primaryPhone": "0777.080.111",
+    "zaloNumber": "0777080111",
+    "address": "Khu Đô Thị Ocear Pack I, Q.Gia Lâm, TP.Hà Nội",
+    "email": "cayxanhthudo001@gmail.com",
+    "workHours": "08:00 - 18:00 (Tất cả các ngày trong tuần)"
+  }
+}

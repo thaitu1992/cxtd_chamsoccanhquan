@@ -1,0 +1,6 @@
+{
+  "name": "Cây Xanh Thủ Đô - Cảnh Quan Sân Vườn",
+  "description": "Website quảng cáo dịch vụ chăm sóc cảnh quan và sân vườn chuyên nghiệp, tối ưu quảng cáo trên di động và tích hợp hệ thống quản lý form dữ liệu khách hàng.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
