@@ -508,7 +508,10 @@ export default function App() {
                       </a>
                     </div>
                     <div className="text-slate-600">
-                      Đường dây nóng bổ sung: <span className="text-emerald-700 font-bold block text-sm sm:text-base">0922.33.8787</span>
+                      Đường dây nóng bổ sung: 
+                      <a href="tel:0777010222" className="hover:underline text-emerald-700 font-bold block text-sm sm:text-base">
+                        0777.010.222
+                      </a>
                     </div>
                   </div>
 
