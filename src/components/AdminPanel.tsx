@@ -29,6 +29,10 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
   const [showTelegramToken, setShowTelegramToken] = useState(false);
   const [telegramTestLoading, setTelegramTestLoading] = useState(false);
   const [telegramTestResult, setTelegramTestResult] = useState<{success: boolean; message: string} | null>(null);
+  const [googleSheetTestLoading, setGoogleSheetTestLoading] = useState(false);
+  const [googleSheetTestResult, setGoogleSheetTestResult] = useState<{success: boolean; message: string} | null>(null);
+  const [copiedScript, setCopiedScript] = useState(false);
+  const [showScriptModal, setShowScriptModal] = useState(false);
 
   // Load leads
   const fetchLeads = async () => {
@@ -142,6 +146,31 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
       setTelegramTestResult({ success: false, message: "Lỗi kết nối máy chủ gửi tin thử" });
     } finally {
       setTelegramTestLoading(false);
+    }
+  };
+
+  // Test Google Sheet Connection
+  const handleTestGoogleSheet = async () => {
+    setGoogleSheetTestLoading(true);
+    setGoogleSheetTestResult(null);
+    try {
+      const res = await fetch("/api/test-googlesheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          webAppUrl: settings.notifications.googleSheet?.webAppUrl,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setGoogleSheetTestResult({ success: true, message: data.message });
+      } else {
+        setGoogleSheetTestResult({ success: false, message: data.error });
+      }
+    } catch (err) {
+      setGoogleSheetTestResult({ success: false, message: "Lỗi kết nối máy chủ gửi tin thử Google Sheet" });
+    } finally {
+      setGoogleSheetTestLoading(false);
     }
   };
 
@@ -280,6 +309,77 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
             <p className="text-[11px] text-brand-800 leading-relaxed">
               Bật thông báo <strong>Telegram</strong> phía dưới để nhận Lead ngay khi khách điền mẫu trên điện thoại. Hỗ trợ phản hồi tư vấn siêu tốc trong 5 phút hạ gục đối thủ cạnh tranh!
             </p>
+          </div>
+
+          {/* Quick Google Sheets integration card at the very bottom of the sidebar */}
+          <div className="bg-emerald-50/75 rounded-2xl p-4 md:p-4.5 border border-emerald-100 mt-4 space-y-3 shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📊</span>
+              <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider">
+                Mã nguồn Google Sheets
+              </h4>
+            </div>
+            <p className="text-[11.5px] text-emerald-800 leading-relaxed">
+              Tự động đẩy Lead sang Google Sheet bằng cách dán mã <strong>doPost</strong> Apps Script. Nhấp để lấy mã ngay!
+            </p>
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const code = `function doPost(e) {
+  try {
+    var jsonString = e.postData.contents;
+    var data = JSON.parse(jsonString);
+    
+    // ID của bảng tính Google Sheet của bạn
+    var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheetByName("Trang tinh1");
+    if (!sheet) {
+      sheet = ss.getSheets()[0]; // Fallback về trang tính đầu tiên
+    }
+    
+    // Thêm dòng mới chứa thông tin Lead
+    sheet.appendRow([
+      data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"}),
+      data.id || "",
+      data.name || "",
+      data.phone || "",
+      data.email || "",
+      data.address || "",
+      data.area || "",
+      data.services || "",
+      data.frequency || "",
+      data.message || "",
+      data.estimatedBudget ? data.estimatedBudget.toLocaleString("vi-VN") + " VNĐ" : ""
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+                  navigator.clipboard.writeText(code);
+                  setCopiedScript(true);
+                  setTimeout(() => setCopiedScript(false), 3000);
+                }}
+                className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-98 transition-all"
+              >
+                <Check className="w-3.5 h-3.5" />
+                {copiedScript ? "Đã chép mã script! ✓" : "Sao chép mã Google Script (doPost)"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowScriptModal(true)}
+                className="w-full py-2 bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98"
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-emerald-600" />
+                Hướng dẫn cài đặt
+              </button>
+            </div>
           </div>
         </div>
 
@@ -881,6 +981,154 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
                 )}
               </div>
 
+              {/* Google Sheet Direct Synchronization */}
+              <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-5 space-y-4">
+                <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200">
+                  <div className="flex gap-3 items-center">
+                    <span className="text-xl">📊</span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-800">Kết nối trực tiếp Google Sheet</h4>
+                      <p className="text-[11px] text-slate-400">Tự động đẩy thông tin Lead mới về bảng tính của bạn theo thời gian thực.</p>
+                    </div>
+                  </div>
+                  
+                  {/* Toggle Switch */}
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications.googleSheet?.enabled || false}
+                      onChange={(e) => {
+                        const updated = { ...settings };
+                        updated.notifications.googleSheet = {
+                          enabled: e.target.checked,
+                          webAppUrl: settings.notifications.googleSheet?.webAppUrl || ""
+                        };
+                        setSettings(updated);
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                  </label>
+                </div>
+
+                {(settings.notifications.googleSheet?.enabled) && (
+                  <div className="space-y-4.5 pt-2 animate-fadeIn">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600 block">
+                        Đường dẫn Google Apps Script Web App URL:
+                      </label>
+                      <input
+                        type="url"
+                        value={settings.notifications.googleSheet?.webAppUrl || ""}
+                        onChange={(e) => {
+                          const updated = { ...settings };
+                          updated.notifications.googleSheet = {
+                            enabled: settings.notifications.googleSheet?.enabled || false,
+                            webAppUrl: e.target.value
+                          };
+                          setSettings(updated);
+                        }}
+                        placeholder="https://script.google.com/macros/s/AKfycbz.../exec"
+                        className="w-full text-xs font-mono border border-slate-200 bg-white rounded-lg p-2.5 focus:ring-1 focus:ring-brand-500"
+                      />
+                      <span className="text-[10px] text-slate-400 block leading-relaxed">
+                        *Lưu ý dán URL của Web App sau khi Deploy dạng Google Apps Script (phần quyền truy cập chọn Anyone).
+                      </span>
+                    </div>
+
+                    {/* Google Apps Script Guidelines & Clipboard Copy Code */}
+                    <div className="bg-white p-4.5 rounded-xl border border-slate-200 space-y-3">
+                      <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                        <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          📋 Hướng dẫn cài đặt Google Apps Script:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const code = `function doPost(e) {
+  try {
+    var jsonString = e.postData.contents;
+    var data = JSON.parse(jsonString);
+    
+    // ID của bảng tính Google Sheet của bạn
+    var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheetByName("Trang tinh1");
+    if (!sheet) {
+      sheet = ss.getSheets()[0]; // Fallback về trang tính đầu tiên
+    }
+    
+    // Thêm dòng mới chứa thông tin Lead
+    sheet.appendRow([
+      data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"}),
+      data.id || "",
+      data.name || "",
+      data.phone || "",
+      data.email || "",
+      data.address || "",
+      data.area || "",
+      data.services || "",
+      data.frequency || "",
+      data.message || "",
+      data.estimatedBudget ? data.estimatedBudget.toLocaleString("vi-VN") + " VNĐ" : ""
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+                            navigator.clipboard.writeText(code);
+                            setCopiedScript(true);
+                            setTimeout(() => setCopiedScript(false), 3000);
+                          }}
+                          className="px-2.5 py-1 text-[11px] bg-slate-100 hover:bg-slate-200 font-bold rounded text-slate-700 flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          {copiedScript ? "Đã sao chép! ✓" : "Sao chép mã Apps Script"}
+                        </button>
+                      </div>
+
+                      <div className="text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
+                        <p>1. Mở Google Sheet <a href="https://docs.google.com/spreadsheets/d/1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g/edit" target="_blank" rel="noreferrer" className="text-brand-600 hover:underline font-semibold">TẠI ĐÂY</a>.</p>
+                        <p>2. Trên menu, chọn <strong>Tiện ích mở rộng (Extensions)</strong> &gt; <strong>Apps Script</strong>.</p>
+                        <p>3. Xóa mọi mã hiện có và dán đoạn mã Apps Script nhận dữ liệu đã sao chép ở trên.</p>
+                        <p>4. Nhấp <strong>Triển khai (Deploy)</strong> &gt; <strong>Tạo bản triển khai mới (New deployment)</strong>.</p>
+                        <p>5. Chọn loại là <strong>Ứng dụng web (Web app)</strong>. Phần cấu hình: chạy dưới tên bạn (Me), quyền truy cập: <strong>Mọi người (Anyone)</strong>.</p>
+                        <p>6. Tạo bản triển khai, cấp quyền truy cập của Google, rồi sao chép URL ứng dụng web nhận được và dán vào ô cấu hình phía trên.</p>
+                      </div>
+                    </div>
+
+                    {/* Test alert block */}
+                    <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
+                      <span className="text-[11px] font-semibold text-slate-600 block">Kiểm thử bắn dữ liệu sang Google Sheet:</span>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleTestGoogleSheet}
+                          disabled={googleSheetTestLoading || !settings.notifications.googleSheet?.webAppUrl}
+                          className="flex items-center gap-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold px-3 py-2 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          {googleSheetTestLoading ? "Đang đẩy dữ liệu thử..." : "Bắn một Lead thử nghiệm sang Google Sheet"}
+                        </button>
+                      </div>
+
+                      {googleSheetTestResult && (
+                        <div className={`p-2.5 rounded text-xs leading-relaxed font-semibold font-mono ${
+                          googleSheetTestResult.success ? "bg-green-50 text-emerald-800 border-l-4 border-green-500" : "bg-red-50 text-red-800 border-l-4 border-red-500"
+                        }`}>
+                          {googleSheetTestResult.success ? "✓ Thành công! " : "✗ Thất bại: "}
+                          {googleSheetTestResult.message}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Save change actions */}
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 {saveSuccess && (
@@ -1025,6 +1273,149 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
 
         </div>
       </div>
+
+      {showScriptModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn" onClick={() => setShowScriptModal(false)}>
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[85vh] overflow-y-auto space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📊</span>
+                <div>
+                  <h3 className="text-base md:text-lg font-bold text-slate-800">Cấu hình Google Sheets Apps Script (doPost)</h3>
+                  <p className="text-xs text-slate-400">Cách cài đặt tự động đẩy dữ liệu sang Google Sheet của bạn</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setShowScriptModal(false)}
+                className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-full transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 leading-relaxed">
+                <strong>💡 Lưu ý quan trọng:</strong> Khi triển khai ứng dụng web (Web App) trên Google Sheets Apps Script, bạn cần cấu hình quyền truy cập <strong>Mọi người (Anyone)</strong> để Server có thể đẩy dữ liệu biểu mẫu sang được.
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-700 block font-sans">Các bước thực hiện nhanh:</span>
+                <ol className="text-xs text-slate-600 space-y-2 list-decimal pl-4.5 leading-relaxed font-sans">
+                  <li>Mở file Google Sheet của bạn và copy URL hoặc lấy ID từ URL của sheet đó. Bạn có thể dùng trực tiếp sheet mẫu của Cây Xanh Thủ Đô bằng cách nhấp <a href="https://docs.google.com/spreadsheets/d/1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g/edit" target="_blank" rel="noreferrer" className="text-brand-600 hover:underline font-bold">tại đây</a> và chọn <b>Tệp (File) &gt; Tạo bản sao (Make a copy)</b>.</li>
+                  <li>Trên menu của Google Sheet mới của bạn, chọn <strong>Tiện ích mở rộng (Extensions)</strong> &gt; <strong>Apps Script</strong>.</li>
+                  <li>Xóa sạch toàn bộ code mặc định có sẵn dán dính vào đó đoạn mã <strong>doPost(e)</strong> bên dưới.</li>
+                  <li>Tìm dòng <code>var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";</code> trong code và thay thế bằng ID Google Sheet thực tế của bạn.</li>
+                  <li>Nhấp nút <strong>Triển khai (Deploy)</strong> ở góc trên bên phải &gt; Chọn <strong>Tạo bản triển khai mới (New deployment)</strong>.</li>
+                  <li>Chọn biểu tượng bánh răng bên cạnh 'Chọn loại' và chọn <strong>Ứng dụng web (Web app)</strong>.</li>
+                  <li>Phần cấu hình: Chạy dưới dạng: <b>Tôi (Me)</b>, Quyền truy cập: <b>Mọi người (Anyone)</b>. Nhấp Triển khai.</li>
+                  <li>Nếu Google yêu cầu cấp quyền, hãy đăng nhập chọn tài khoản của bạn, chọn Advanced &gt; Go to Untitled project (unsafe), nhấp <b>Allow</b>.</li>
+                  <li>Sao chép <b>URL Ứng dụng web (Web App URL)</b> nhận được dán vào phần cấu hình Web App URL trong mục <strong>Cấu hình thông báo &gt; Google Sheet</strong>.</li>
+                </ol>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center bg-slate-900 px-4 py-2 rounded-t-xl text-white">
+                  <span className="text-[11px] font-mono font-bold text-slate-400">Google Apps Script Code (doPost.js)</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const code = `function doPost(e) {
+  try {
+    var jsonString = e.postData.contents;
+    var data = JSON.parse(jsonString);
+    
+    // ID của bảng tính Google Sheet của bạn
+    var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheetByName("Trang tinh1");
+    if (!sheet) {
+      sheet = ss.getSheets()[0]; // Fallback về trang tính đầu tiên
+    }
+    
+    // Thêm dòng mới chứa thông tin Lead
+    sheet.appendRow([
+      data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"}),
+      data.id || "",
+      data.name || "",
+      data.phone || "",
+      data.email || "",
+      data.address || "",
+      data.area || "",
+      data.services || "",
+      data.frequency || "",
+      data.message || "",
+      data.estimatedBudget ? data.estimatedBudget.toLocaleString("vi-VN") + " VNĐ" : ""
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+                      navigator.clipboard.writeText(code);
+                      setCopiedScript(true);
+                      setTimeout(() => setCopiedScript(false), 3000);
+                    }}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-2.5 py-1 rounded-md transition-colors"
+                  >
+                    {copiedScript ? "Đã sao chép! ✓" : "Sao chép toàn bộ"}
+                  </button>
+                </div>
+                <pre className="p-3 bg-slate-950 text-emerald-400 font-mono text-[10.5px] rounded-b-xl overflow-x-auto max-h-56 leading-relaxed select-all">
+{`function doPost(e) {
+  try {
+    var jsonString = e.postData.contents;
+    var data = JSON.parse(jsonString);
+    
+    // ID của bảng tính Google Sheet của bạn
+    var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheetByName("Trang tinh1");
+    if (!sheet) {
+      sheet = ss.getSheets()[0]; // Fallback về trang tính đầu tiên
+    }
+    
+    // Thêm dòng mới chứa thông tin Lead
+    sheet.appendRow([
+      data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"}),
+      data.id || "",
+      data.name || "",
+      data.phone || "",
+      data.email || "",
+      data.address || "",
+      data.area || "",
+      data.services || "",
+      data.frequency || "",
+      data.message || "",
+      data.estimatedBudget ? data.estimatedBudget.toLocaleString("vi-VN") + " VNĐ" : ""
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}`}
+                </pre>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowScriptModal(false)}
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+              >
+                Đã hiểu & Đóng lại
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

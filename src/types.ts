@@ -44,6 +44,10 @@ export interface Settings {
       enabled: boolean;
       destination: string;
     };
+    googleSheet?: {
+      enabled: boolean;
+      webAppUrl: string;
+    };
   };
   info: {
     companyName: string;

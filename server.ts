@@ -34,6 +34,10 @@ const DEFAULT_SETTINGS: Settings = {
       enabled: false,
       destination: "",
     },
+    googleSheet: {
+      enabled: false,
+      webAppUrl: "",
+    },
   },
   info: {
     companyName: "Cây Xanh Thủ Đô",
@@ -88,10 +92,22 @@ async function readSettings(): Promise<Settings> {
   try {
     const content = await fs.readFile(SETTINGS_FILE, "utf-8");
     const parsed = JSON.parse(content);
-    // Ensure all keys exist by merging with default
+    
+    // Ensure nested googleSheet structure is merged correctly
+    const mergedNotifications = { 
+      ...DEFAULT_SETTINGS.notifications, 
+      ...parsed.notifications 
+    };
+    if (parsed.notifications && parsed.notifications.googleSheet) {
+      mergedNotifications.googleSheet = {
+        ...DEFAULT_SETTINGS.notifications.googleSheet,
+        ...parsed.notifications.googleSheet
+      };
+    }
+
     return {
       fields: { ...DEFAULT_SETTINGS.fields, ...parsed.fields },
-      notifications: { ...DEFAULT_SETTINGS.notifications, ...parsed.notifications },
+      notifications: mergedNotifications,
       info: { ...DEFAULT_SETTINGS.info, ...parsed.info },
     };
   } catch (err) {
@@ -159,6 +175,35 @@ async function sendWebhook(webhookUrl: string, lead: Lead) {
     console.log(`Webhook triggered to ${webhookUrl}. Response status: ${response.status}`);
   } catch (err) {
     console.error("Webhook trigger failed:", err);
+  }
+}
+
+// Push Google Sheet Simple Request Helper (Content-Type text/plain to avoid CORS)
+async function sendGoogleSheet(webAppUrl: string, lead: Lead) {
+  if (!webAppUrl) return;
+  try {
+    const formattedData = {
+      id: lead.id,
+      name: lead.name,
+      phone: lead.phone,
+      email: lead.email || "",
+      address: lead.address || "",
+      area: lead.area || "",
+      services: lead.services ? lead.services.join(", ") : "",
+      frequency: lead.frequency || "",
+      message: lead.message || "",
+      estimatedBudget: lead.estimatedBudget || "",
+      createdAt: new Date(lead.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
+    };
+
+    const response = await fetch(webAppUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(formattedData),
+    });
+    console.log(`Google Sheet simple request sent to ${webAppUrl}. Status: ${response.status}`);
+  } catch (err) {
+    console.error("Google Sheet simple request failed:", err);
   }
 }
 
@@ -270,6 +315,10 @@ async function startServer() {
         sendWebhook(settings.notifications.webhook.url, newLead);
       }
 
+      if (settings.notifications.googleSheet && settings.notifications.googleSheet.enabled) {
+        sendGoogleSheet(settings.notifications.googleSheet.webAppUrl, newLead);
+      }
+
       res.status(201).json({ success: true, data: newLead });
     } catch (error) {
       console.error("Error submitting lead:", error);
@@ -344,6 +393,36 @@ async function startServer() {
       res.json({ success: true, message: "Yêu cầu kiểm thử đã gửi! Hãy kiểm tra kênh Telegram của bạn." });
     } catch (error) {
       res.status(500).json({ error: "Gửi kiểm thử thất bại" });
+    }
+  });
+
+  // API Route: Test Google Sheet simple request
+  app.post("/api/test-googlesheet", async (req, res) => {
+    try {
+      const { webAppUrl } = req.body;
+      if (!webAppUrl) {
+        return res.status(400).json({ error: "Vui lòng nhập URL Web App của Google Apps Script để thử nghiệm" });
+      }
+      
+      const testLead: Lead = {
+        id: "TEST-GG1",
+        name: "Khách Thử Nghiệm Google Sheet 📊",
+        phone: "0777010222",
+        email: "test-sheet@example.com",
+        address: "Mẫu Gửi Thử Sân Vườn, Ciputra, Hà Nội",
+        area: 250,
+        frequency: "Định kỳ tuần",
+        services: ["Thiết kế cải tạo sân vườn biệt thự", "Chăm sóc định kỳ hàng tuần"],
+        message: "Yêu cầu gửi thử nghiệm từ trang quản trị Cây Xanh Thủ Đô để xác thực kết nối Google Sheet thành công.",
+        status: "new",
+        createdAt: new Date().toISOString(),
+        estimatedBudget: 12000000,
+      };
+
+      await sendGoogleSheet(webAppUrl, testLead);
+      res.json({ success: true, message: "Yêu cầu gửi thử nghiệm đã phát đi thành công! Hãy kiểm tra Google Sheet của bạn." });
+    } catch (error) {
+      res.status(500).json({ error: "Gửi thử nghiệm đi thất bại" });
     }
   });
 
