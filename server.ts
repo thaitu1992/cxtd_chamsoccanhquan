@@ -200,7 +200,7 @@ async function sendGoogleSheet(webAppUrl: string, lead: Lead): Promise<{ success
 
     const response = await fetch(webAppUrl, {
       method: "POST",
-      headers: { "Content-Type": "text/plain" },
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
       body: JSON.stringify(formattedData),
     });
 

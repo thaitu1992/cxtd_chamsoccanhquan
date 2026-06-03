@@ -173,7 +173,7 @@ export default function App() {
         await fetch(settings.notifications.googleSheet.webAppUrl, {
           method: "POST",
           mode: "no-cors",
-          headers: { "Content-Type": "text/plain" },
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
           body: JSON.stringify(formattedData),
         });
       } catch (gErr) {
