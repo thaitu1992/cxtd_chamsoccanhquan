@@ -83,16 +83,120 @@ export default function App() {
 
   // Load configuration from API server
   const loadSettings = async () => {
+    // Attempt local storage cache/fallback first so layout doesn't flicker
+    const cachedSettings = localStorage.getItem("cayxanh_settings");
+    if (cachedSettings) {
+      try {
+        setSettings(JSON.parse(cachedSettings));
+      } catch (e) {
+        console.error("Failed to parse cached settings:", e);
+      }
+    }
+
     try {
       const res = await fetch("/api/settings");
       if (res.ok) {
         const data = await res.json();
         setSettings(data);
+        localStorage.setItem("cayxanh_settings", JSON.stringify(data));
       }
     } catch (e) {
       console.error("Unable to draw settings from api, using default fallback:", e);
     } finally {
       setSettingsLoading(false);
+    }
+  };
+
+  const handleClientOnlySubmission = async (newLead: Lead) => {
+    // 1. Save to browser's localStorage for Admin Panel list
+    try {
+      const storedLeads = localStorage.getItem("cayxanh_leads");
+      let leadsList: Lead[] = [];
+      if (storedLeads) {
+        leadsList = JSON.parse(storedLeads);
+      }
+      leadsList.unshift(newLead);
+      localStorage.setItem("cayxanh_leads", JSON.stringify(leadsList));
+    } catch (err) {
+      console.error("Failed to save lead to localStorage:", err);
+    }
+
+    // 2. Direct client notifications (Telegram API has CORS enabled by default!)
+    if (settings.notifications.telegram.enabled && settings.notifications.telegram.botToken && settings.notifications.telegram.chatId) {
+      try {
+        const appUrl = window.location.origin;
+        const text = `🌱 **[YÊU CẦU CHĂM SÓC CẢNH QUAN MỚI]** 🌱\n\n` +
+          `👤 **Khách hàng:** ${newLead.name}\n` +
+          `📞 **Điện thoại:** [${newLead.phone}](tel:${newLead.phone})\n` +
+          (newLead.email ? `✉️ **Email:** ${newLead.email}\n` : "") +
+          (newLead.address ? `📍 **Địa chỉ:** ${newLead.address}\n` : "") +
+          (newLead.area ? `📐 **Diện tích:** ${newLead.area} m²\n` : "") +
+          (newLead.frequency ? `⏳ **Tần suất:** ${newLead.frequency}\n` : "") +
+          (newLead.estimatedBudget ? `💰 **Dự toán:** ~${newLead.estimatedBudget.toLocaleString('vi-VN')} VNĐ\n` : "") +
+          (newLead.services && newLead.services.length > 0 ? `🛠️ **Dịch vụ:** ${newLead.services.join(", ")}\n` : "") +
+          (newLead.message ? `📝 **Yêu cầu chi tiết:** ${newLead.message}\n` : "") +
+          `\n📅 **Thời gian nhận:** ${new Date(newLead.createdAt).toLocaleString('vi-VN', {timeZone: 'Asia/Ho_Chi_Minh'})}\n` +
+          `🔗 Xem chi tiết tại: ${appUrl}/admin (nếu chạy VPS/nhà riêng)\n` +
+          `⚠️ *(Thông báo gửi trực tiếp từ Trình duyệt)*`;
+
+        await fetch(`https://api.telegram.org/bot${settings.notifications.telegram.botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: settings.notifications.telegram.chatId,
+            text: text,
+            parse_mode: "Markdown",
+          }),
+        });
+      } catch (tErr) {
+        console.error("Failed to send client-side Telegram alert:", tErr);
+      }
+    }
+
+    // 3. Direct Google Sheet posting without CORS blockage via no-cors plain text POST
+    if (settings.notifications.googleSheet && settings.notifications.googleSheet.enabled && settings.notifications.googleSheet.webAppUrl) {
+      try {
+        const formattedData = {
+          id: newLead.id,
+          name: newLead.name,
+          phone: newLead.phone,
+          email: newLead.email || "",
+          address: newLead.address || "",
+          area: newLead.area || "",
+          services: newLead.services ? newLead.services.join(", ") : "",
+          frequency: newLead.frequency || "",
+          message: newLead.message || "",
+          estimatedBudget: newLead.estimatedBudget || "",
+          createdAt: new Date(newLead.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
+        };
+
+        await fetch(settings.notifications.googleSheet.webAppUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(formattedData),
+        });
+      } catch (gErr) {
+        console.error("Failed to push client fallback Google Sheet:", gErr);
+      }
+    }
+
+    // 4. Webhook direct trigger
+    if (settings.notifications.webhook.enabled && settings.notifications.webhook.url) {
+      try {
+        await fetch(settings.notifications.webhook.url, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "form_submission",
+            timestamp: new Date().toISOString(),
+            data: newLead,
+          }),
+        });
+      } catch (wErr) {
+        console.error("Failed to execute webhook client fallback:", wErr);
+      }
     }
   };
 
@@ -158,31 +262,68 @@ export default function App() {
     setSubmitLoading(true);
     setSubmitResult(null);
 
+    // Build the new lead object first
+    const localId = "L" + Math.random().toString(36).substring(2, 11).toUpperCase();
+    const newLead: Lead = {
+      id: localId,
+      name: formName || "Khách hàng ẩn danh",
+      phone: formPhone || "",
+      email: formEmail || undefined,
+      address: formAddress || undefined,
+      area: formArea ? Number(formArea) : undefined,
+      services: formServices || [],
+      frequency: formFrequency || undefined,
+      message: formMessage || undefined,
+      status: "new",
+      createdAt: new Date().toISOString(),
+      estimatedBudget: formEstimatedBudget ? Number(formEstimatedBudget) : undefined,
+    };
+
+    let submittedSuccessfully = false;
+
     try {
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formName,
-          phone: formPhone,
-          email: formEmail || undefined,
-          address: formAddress || undefined,
-          area: formArea,
-          services: formServices,
-          frequency: formFrequency || undefined,
-          message: formMessage || undefined,
-          estimatedBudget: formEstimatedBudget,
-        }),
+        body: JSON.stringify(newLead),
       });
 
-      const responseData = await res.json();
       if (res.ok) {
+        const responseData = await res.json();
         setSubmitResult({
           success: true,
-          leadId: responseData.data?.id,
-          message: "Lên lịch thành công! Đội ngũ Cây Xanh Thủ Đô sẽ gọi lại trong vòng 5-15 phút.",
+          leadId: responseData.data?.id || newLead.id,
+          message: "Lên lịch thành công! Đội ngũ Cây Xanh Thủ Đô sẽ gọi lại trong vòng 5-15 phút. ✓",
         });
-        
+        submittedSuccessfully = true;
+      } else if (res.status === 404) {
+        // Static hosting detected! Fallback to client-only dispatch
+        console.log("Static server detected. Executing browser-side fallback registration.");
+        await handleClientOnlySubmission(newLead);
+        setSubmitResult({
+          success: true,
+          leadId: newLead.id,
+          message: "Đăng ký thành công! Đội ngũ Cây Xanh Thủ Đô sẽ liên hệ làm việc với quý khách trong 5-15 phút! ✓ (Lưu trữ thành công trên thiết bị).",
+        });
+        submittedSuccessfully = true;
+      } else {
+        const responseData = await res.json().catch(() => ({}));
+        setSubmitResult({
+          success: false,
+          message: responseData.error || "Gửi thông tin lỗi, mời bạn liên hệ trực tiếp hotline.",
+        });
+      }
+    } catch (err) {
+      console.warn("Server connection bypassed. Activating frontend dispatch engine:", err);
+      await handleClientOnlySubmission(newLead);
+      setSubmitResult({
+        success: true,
+        leadId: newLead.id,
+        message: "Yêu cầu đã được gửi từ trình duyệt! Đội ngũ tư vấn sẽ liên hệ lại với quý khách ngay lập tức. ✓",
+      });
+      submittedSuccessfully = true;
+    } finally {
+      if (submittedSuccessfully) {
         // Reset inputs
         setFormName("");
         setFormPhone("");
@@ -193,18 +334,7 @@ export default function App() {
         setFormMessage("");
         setFormEstimatedBudget(undefined);
         setFormFrequency("");
-      } else {
-        setSubmitResult({
-          success: false,
-          message: responseData.error || "Gửi thông tin lỗi, mời bạn liên hệ trực tiếp hotline.",
-        });
       }
-    } catch (err) {
-      setSubmitResult({
-        success: false,
-        message: "Lỗi kết nối máy chủ. Vui lòng thử lại sau giây lát hoặc kết nối trực tiếp hotine.",
-      });
-    } finally {
       setSubmitLoading(false);
     }
   };
