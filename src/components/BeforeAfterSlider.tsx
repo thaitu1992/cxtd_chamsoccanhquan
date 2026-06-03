@@ -53,7 +53,7 @@ export default function BeforeAfterSlider() {
         {/* Before - Overgrown/unpolished landscape */}
         <div className="absolute inset-0 bg-slate-900">
           <img 
-            src="/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-10-2.png" 
+            src="https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-10-2.png" 
             alt="Trước khi chăm sóc bón phân" 
             className="w-full h-full object-cover filter grayscale contrast-125 brightness-45 blur-[0.3px]"
             referrerPolicy="no-referrer"
@@ -79,7 +79,7 @@ export default function BeforeAfterSlider() {
           style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
         >
           <img 
-            src="/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-1-3.png" 
+            src="https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-1-3.png" 
             alt="Sau khi kỹ sư chăm sóc tận tình" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

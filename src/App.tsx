@@ -493,8 +493,7 @@ export default function App() {
                   {/* Screenshot card representation with numbers */}
                   <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold">
                     <div className="text-slate-600">
-                      Hotline chạy ads trực tiếp: 
-                      <a href={`tel:${settings.info.primaryPhone.replace(/\./g, "")}`} className="hover:underline text-rose-600 font-bold block text-sm sm:text-base">
+                      Hotline <a href={`tel:${settings.info.primaryPhone.replace(/\./g, "")}`} className="hover:underline text-rose-600 font-bold block text-sm sm:text-base">
                         {settings.info.primaryPhone}
                       </a>
                     </div>
