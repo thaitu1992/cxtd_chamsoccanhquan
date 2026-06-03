@@ -39,12 +39,12 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 const PROJECT_IMAGES = [
-  { url: "/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-1-3.png", title: "Cảnh Quan Sân Vườn Biệt Thự Vinhomes", location: "Vinhomes Ocean Park, Gia Lâm, Hà Nội" },
-  { url: "/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-9-2.png", title: "Khuôn Viên Cỏ Nhung Nhật Bản Sạch Sẽ", location: "Khu Biệt Thự Ciputra, Tây Hồ, Hà Nội" },
-  { url: "/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-3-1.png", title: "Cắt Tỉa Bonsai Tùng La Hán Sang Trọng", location: "Villa Sân Vườn, Ecopark Hưng Yên" },
-  { url: "/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-4-1.png", title: "Thảm Cây Xanh mát Lối Đi Dạo Biệt Thự", location: "Khu Đô Thị Splendora, Hoài Đức" },
-  { url: "/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-5-1.png", title: "Quy Hoạch Tiểu Cảnh Sân Vườn Hiện Đại", location: "Biệt thự Đơn Lập, Long Biên, Hà Nội" },
-  { url: "/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-6-1.png", title: "Chữa Trị Sâu Bệnh Bonsai & Cây Công Trình", location: "Nhà Vườn Đồi, Sóc Sơn, Hà Nội" }
+  { url: "https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-1-3.png", title: "Cảnh Quan Sân Vườn Biệt Thự Vinhomes", location: "Vinhomes Ocean Park, Gia Lâm, Hà Nội" },
+  { url: "https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-9-2.png", title: "Khuôn Viên Cỏ Nhung Nhật Bản Sạch Sẽ", location: "Khu Biệt Thự Ciputra, Tây Hồ, Hà Nội" },
+  { url: "https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-3-1.png", title: "Cắt Tỉa Bonsai Tùng La Hán Sang Trọng", location: "Villa Sân Vườn, Ecopark Hưng Yên" },
+  { url: "https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-4-1.png", title: "Thảm Cây Xanh mát Lối Đi Dạo Biệt Thự", location: "Khu Đô Thị Splendora, Hoài Đức" },
+  { url: "https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-5-1.png", title: "Quy Hoạch Tiểu Cảnh Sân Vườn Hiện Đại", location: "Biệt thự Đơn Lập, Long Biên, Hà Nội" },
+  { url: "https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-6-1.png", title: "Chữa Trị Sâu Bệnh Bonsai & Cây Công Trình", location: "Nhà Vườn Đồi, Sóc Sơn, Hà Nội" }
 ];
 
 export default function App() {
@@ -296,15 +296,6 @@ export default function App() {
             <a href="#calculator-section" className="hover:text-emerald-700 transition-colors">Tự tính chi phí</a>
             <a href="#villas-gallery-section" className="hover:text-emerald-700 transition-colors">Dự án biệt thự</a>
             <a href="#faq-section" className="hover:text-emerald-700 transition-colors">Câu hỏi thường gặp</a>
-            <a 
-              href="https://cayxanhthudo.vn" 
-              target="_blank" 
-              rel="noreferrer"
-              className="text-emerald-600 hover:text-emerald-800 transition-all font-semibold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-full text-[11px] border border-emerald-200"
-            >
-              <span>Website chính: cayxanhthudo.vn</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
           </nav>
 
           {/* Right corner admin panel shortcut & CTA links */}
@@ -411,7 +402,7 @@ export default function App() {
               {/* Premium background landscape banner image with subtle opacity & blend */}
               <div className="absolute inset-0 z-0 select-none pointer-events-none opacity-[0.06] mix-blend-overlay">
                 <img 
-                  src="/api/image-proxy?url=https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-1-3.png" 
+                  src="https://decoxdesign.com/upload/images/thiet-ke-canh-quan-san-vuon-1-3.png" 
                   alt="Landscape background pattern" 
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
@@ -890,35 +881,6 @@ export default function App() {
                   ))}
                 </div>
 
-              </div>
-            </section>
-
-            {/* EXQUISITE HIGHLIGHT SECTION BOUNCING BACK TO CAYXANHTHUDO.VN */}
-            <section className="bg-emerald-50/70 py-16 border-y border-emerald-100">
-              <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-                <div className="bg-emerald-100 inline-flex p-3 rounded-2xl text-emerald-800 shadow-inner">
-                  <Award className="w-8 h-8 animate-pulse text-yellow-600" />
-                </div>
-                
-                <h3 className="text-2xl sm:text-3xl font-display font-black text-slate-800 tracking-tight">
-                  Khám Phá Toàn Bộ Kiệt Tác Tại Website Chính Thức
-                </h3>
-                
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto font-medium">
-                  Để tham khảo trọn bộ Catalgoue hơn 1.000+ sản phẩm cây giống đại thụ biệt thự, tài liệu quy hoạch 3D phong thủy hoàn thảo của dự án và toàn bộ hồ sơ năng lực pháp lý 5 sao của hệ thống chúng tôi, xin quý khách hàng gõ duyệt hoặc truy cập trực tiếp Website Mẹ.
-                </p>
-
-                <div className="pt-3">
-                  <a 
-                    href="https://cayxanhthudo.vn" 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs sm:text-sm py-4 px-8 rounded-full shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transition-all transform hover:scale-[1.02]"
-                  >
-                    <span>TRUY CẬP WEBSITE: WWW.CAYXANHTHUDO.VN</span>
-                    <ExternalLink className="w-4.5 h-4.5" />
-                  </a>
-                </div>
               </div>
             </section>
 
