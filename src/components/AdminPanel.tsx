@@ -65,17 +65,20 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newSettings),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setSaveSuccess(true);
-        if (onSettingsSaved) {
-          onSettingsSaved(newSettings);
-        }
-        setTimeout(() => setSaveSuccess(false), 3000);
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => "");
+        throw new Error(`Máy chủ trả về phản hồi lỗi (${res.status}): ${errorText || "Không có phản hồi chi tiết"}`);
       }
-    } catch (err) {
+      const data = await res.json();
+      setSaveSuccess(true);
+      if (onSettingsSaved) {
+        onSettingsSaved(newSettings);
+      }
+      alert("Đã lưu mọi cấu hình thành công! ✓ Thay đổi đã được áp dụng cho toàn hệ thống.");
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err: any) {
       console.error("Error updating settings:", err);
-      alert("Lỗi lưu cấu hình sân vườn");
+      alert(`Không thể lưu cấu hình sân vườn. Chi tiết lỗi:\n${err.message || err.toString()}`);
     } finally {
       setSaveLoading(false);
     }
@@ -331,15 +334,19 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
     var jsonString = e.postData.contents;
     var data = JSON.parse(jsonString);
     
-    // ID của bảng tính Google Sheet của bạn
-    var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
-    var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheetByName("Trang tinh1");
-    if (!sheet) {
-      sheet = ss.getSheets()[0]; // Fallback về trang tính đầu tiên
+    // Tự động tìm Spreadsheet đang hoạt động và tên Sheet phù hợp
+    var ss;
+    try {
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+    } catch (err) {
+      // ID dự phòng (Thay bằng ID thực tế của bạn nếu cần)
+      var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
+      ss = SpreadsheetApp.openById(sheetId);
     }
     
-    // Thêm dòng mới chứa thông tin Lead
+    var sheet = ss.getSheetByName("Trang tính1") || ss.getSheetByName("Trang tinh1") || ss.getSheets()[0];
+    
+    // Thêm dòng mới chứa thông tin Lead đầy đủ
     sheet.appendRow([
       data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"}),
       data.id || "",
@@ -1050,15 +1057,19 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
     var jsonString = e.postData.contents;
     var data = JSON.parse(jsonString);
     
-    // ID của bảng tính Google Sheet của bạn
-    var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
-    var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheetByName("Trang tinh1");
-    if (!sheet) {
-      sheet = ss.getSheets()[0]; // Fallback về trang tính đầu tiên
+    // Tự động tìm Spreadsheet đang hoạt động và tên Sheet phù hợp
+    var ss;
+    try {
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+    } catch (err) {
+      // ID dự phòng (Thay bằng ID thực tế của bạn nếu cần)
+      var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
+      ss = SpreadsheetApp.openById(sheetId);
     }
     
-    // Thêm dòng mới chứa thông tin Lead
+    var sheet = ss.getSheetByName("Trang tính1") || ss.getSheetByName("Trang tinh1") || ss.getSheets()[0];
+    
+    // Thêm dòng mới chứa thông tin Lead đầy đủ
     sheet.appendRow([
       data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"}),
       data.id || "",
@@ -1325,15 +1336,19 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
     var jsonString = e.postData.contents;
     var data = JSON.parse(jsonString);
     
-    // ID của bảng tính Google Sheet của bạn
-    var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
-    var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheetByName("Trang tinh1");
-    if (!sheet) {
-      sheet = ss.getSheets()[0]; // Fallback về trang tính đầu tiên
+    // Tự động tìm Spreadsheet đang hoạt động và tên Sheet phù hợp
+    var ss;
+    try {
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+    } catch (err) {
+      // ID dự phòng (Thay bằng ID thực tế của bạn nếu cần)
+      var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
+      ss = SpreadsheetApp.openById(sheetId);
     }
     
-    // Thêm dòng mới chứa thông tin Lead
+    var sheet = ss.getSheetByName("Trang tính1") || ss.getSheetByName("Trang tinh1") || ss.getSheets()[0];
+    
+    // Thêm dòng mới chứa thông tin Lead đầy đủ
     sheet.appendRow([
       data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"}),
       data.id || "",
@@ -1370,17 +1385,21 @@ export default function AdminPanel({ onSettingsSaved, savedSettings }: AdminPane
     var jsonString = e.postData.contents;
     var data = JSON.parse(jsonString);
     
-    // ID của bảng tính Google Sheet của bạn
-    var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
-    var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheetByName("Trang tinh1");
-    if (!sheet) {
-      sheet = ss.getSheets()[0]; // Fallback về trang tính đầu tiên
+    // Tự động tìm Spreadsheet đang hoạt động và tên Sheet phù hợp
+    var ss;
+    try {
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+    } catch (err) {
+      // ID dự phòng (Thay bằng ID thực tế của bạn nếu cần)
+      var sheetId = "1AH0dbRA-2VFrghQNt4blfhwTfGfAJuUQbHrlmIluU_g";
+      ss = SpreadsheetApp.openById(sheetId);
     }
     
-    // Thêm dòng mới chứa thông tin Lead
+    var sheet = ss.getSheetByName("Trang tính1") || ss.getSheetByName("Trang tinh1") || ss.getSheets()[0];
+    
+    // Thêm dòng mới chứa thông tin Lead đầy đủ
     sheet.appendRow([
-      data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"}),
+      data.createdAt || new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh animate-pulse"}),
       data.id || "",
       data.name || "",
       data.phone || "",

@@ -413,62 +413,64 @@ export default function App() {
               <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-1/10 left-10 w-[300px] h-[300px] bg-emerald-600/5 rounded-full blur-2xl pointer-events-none" />
 
-              <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+              <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 lg:items-stretch items-center relative z-10">
                 
                 {/* Left Column: Direct high-trust advertisement text with link badge */}
-                <div className="lg:col-span-7 space-y-6 text-left">
+                <div className="lg:col-span-7 flex flex-col justify-between h-full text-left space-y-6 lg:space-y-0">
                   
-                  {/* CAYXANHTHUDO badge */}
-                  <a 
-                    href="https://cayxanhthudo.vn"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 bg-emerald-100/80 border border-emerald-200 px-3.5 py-1.5 rounded-full text-xs font-bold text-emerald-800 hover:bg-emerald-250/95 transition-all shadow-sm"
-                  >
-                    <Award className="w-4 h-4 text-emerald-600" />
-                    <span>Hệ thống trực thuộc đại website: cayxanhthudo.vn</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-emerald-700" />
-                  </a>
+                  <div className="space-y-6">
+                    {/* CAYXANHTHUDO badge */}
+                    <a 
+                      href="https://cayxanhthudo.vn"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 bg-emerald-100/80 border border-emerald-200 px-3.5 py-1.5 rounded-full text-xs font-bold text-emerald-800 hover:bg-emerald-250/95 transition-all shadow-sm"
+                    >
+                      <Award className="w-4 h-4 text-emerald-600" />
+                      <span>Hệ thống trực thuộc đại website: cayxanhthudo.vn</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-emerald-700" />
+                    </a>
 
-                  {/* High impact slogan representing lawn & villa care */}
-                  <div className="space-y-3">
-                    <span className="text-xs font-bold tracking-widest text-emerald-700 uppercase block">
-                      GIẢI PHÁP CHĂM SÓC TOÀN DIỆN - TIẾT KIỆM ĐẾN 20% CHI PHÍ
-                    </span>
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-black leading-tight tracking-tight uppercase">
-                      <span className="text-orange-500">Dịch Vụ Chăm Sóc</span> <br className="hidden md:inline"/>
-                      <span className="text-emerald-700">Sân Vườn Biệt Thự</span> <br className="hidden md:inline"/> 
-                      <span className="text-orange-500">& Cảnh Quan Số 1 Hà Nội</span>
-                    </h1>
-                    <div className="w-20 h-1.5 bg-orange-500 rounded-full" />
-                  </div>
+                    {/* High impact slogan representing lawn & villa care */}
+                    <div className="space-y-3">
+                      <span className="text-xs font-bold tracking-widest text-emerald-700 uppercase block">
+                        GIẢI PHÁP CHĂM SÓC TOÀN DIỆN - TIẾT KIỆM ĐẾN 20% CHI PHÍ
+                      </span>
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-black leading-tight tracking-tight uppercase">
+                        <span className="text-orange-500">Dịch Vụ Chăm Sóc</span> <br className="hidden md:inline"/>
+                        <span className="text-emerald-700">Sân Vườn Biệt Thự</span> <br className="hidden md:inline"/> 
+                        <span className="text-orange-500">& Cảnh Quan Số 1 Hà Nội</span>
+                      </h1>
+                      <div className="w-20 h-1.5 bg-orange-500 rounded-full" />
+                    </div>
 
-                  <p className="text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed max-w-2xl font-medium">
-                    Hồi sinh thảm cỏ nhung Nhật Bản phẳng lỳ nâng tầm giá trị biệt thự, tỉa thế định hình Bonsai quý phái, phun thuốc hữu cơ thảo mộc thảo dược không mùi diệt trừ sâu rầy triệt để, thau sỏi rêu lòng bể cá Koi sạch mát cực hạn. 
-                  </p>
+                    <p className="text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed max-w-2xl font-medium">
+                      Hồi sinh thảm cỏ nhung Nhật Bản phẳng lỳ nâng tầm giá trị biệt thự, tỉa thế định hình Bonsai quý phái, phun thuốc hữu cơ thảo mộc thảo dược không mùi diệt trừ sâu rầy triệt để, thau sỏi rêu lòng bể cá Koi sạch mát cực hạn. 
+                    </p>
 
-                  {/* Real core benefit checklist */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-slate-700 text-xs font-semibold">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
-                      <span>Khảo sát đo thực địa 0đ trong 2 tiếng</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
-                      <span>Cam kết đền bù 100% tài sản cây héo úa</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
-                      <span>Vườn ươm 5ha tại Gia Lâm, Hà Nội</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
-                      <span>Kỹ sư lâm học đại học chính quy thiết kế</span>
+                    {/* Real core benefit checklist */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-slate-700 text-xs font-semibold">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+                        <span>Khảo sát đo thực địa 0đ trong 2 tiếng</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+                        <span>Cam kết đền bù 100% tài sản cây héo úa</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+                        <span>Vườn ươm 5ha tại Gia Lâm, Hà Nội</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+                        <span>Kỹ sư lâm học đại học chính quy thiết kế</span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Live slider preview inside Hero block */}
-                  <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-emerald-100 flex items-center gap-4.5 shadow-sm">
+                  <div className="bg-white/90 backdrop-blur-md p-5 rounded-2xl border border-emerald-100 flex items-center gap-4.5 shadow-sm flex-1 lg:mt-6 min-h-[140px]">
                     <div className="relative aspect-video w-32 md:w-44 rounded-xl overflow-hidden bg-emerald-50 shrink-0 shadow-sm border border-emerald-100 font-display text-emerald-800">
                       <img 
                         src={PROJECT_IMAGES[activeHeroSlide].url} 
@@ -477,7 +479,7 @@ export default function App() {
                         referrerPolicy="no-referrer"
                       />
                     </div>
-                    <div className="space-y-1 text-left">
+                    <div className="space-y-1.5 text-left">
                       <span className="text-[9px] font-mono uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">
                         {PROJECT_IMAGES[activeHeroSlide].location}
                       </span>
@@ -490,28 +492,13 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Screenshot card representation with numbers */}
-                  <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold">
-                    <div className="text-slate-600">
-                      Hotline <a href={`tel:${settings.info.primaryPhone.replace(/\./g, "")}`} className="hover:underline text-rose-600 font-bold block text-sm sm:text-base">
-                        {settings.info.primaryPhone}
-                      </a>
-                    </div>
-                    <div className="text-slate-600">
-                      Đường dây nóng bổ sung: 
-                      <a href="tel:0777010222" className="hover:underline text-emerald-700 font-bold block text-sm sm:text-base">
-                        0777.010.222
-                      </a>
-                    </div>
-                  </div>
-
                 </div>
 
                 {/* Right Column: Dynamic Instant Signup Card above the fold */}
 
                 {/* Right Column: Dynamic Instant Signup Card above the fold */}
-                <div className="lg:col-span-5" id="hero-instant-registration-card">
-                  <div className="bg-white rounded-3xl p-5 sm:p-7 text-slate-800 shadow-2xl border border-slate-100 relative">
+                <div className="lg:col-span-5 flex flex-col justify-between" id="hero-instant-registration-card">
+                  <div className="bg-white rounded-3xl p-5 sm:p-7 text-slate-800 shadow-2xl border border-slate-100 relative h-full flex flex-col justify-between">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-10 pointer-events-none opacity-50" />
                     
                     <div className="text-center space-y-1.5 mb-5">

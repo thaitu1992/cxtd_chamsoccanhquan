@@ -179,8 +179,10 @@ async function sendWebhook(webhookUrl: string, lead: Lead) {
 }
 
 // Push Google Sheet Simple Request Helper (Content-Type text/plain to avoid CORS)
-async function sendGoogleSheet(webAppUrl: string, lead: Lead) {
-  if (!webAppUrl) return;
+async function sendGoogleSheet(webAppUrl: string, lead: Lead): Promise<{ success: boolean; message: string; status?: number }> {
+  if (!webAppUrl) {
+    return { success: false, message: "Đường dẫn URL Web App rỗng" };
+  }
   try {
     const formattedData = {
       id: lead.id,
@@ -201,9 +203,45 @@ async function sendGoogleSheet(webAppUrl: string, lead: Lead) {
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify(formattedData),
     });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      console.error(`Google Sheet Web App error status: ${response.status} - ${text}`);
+      return {
+        success: false,
+        status: response.status,
+        message: `Máy chủ Google Apps Script trả về lỗi ${response.status}: ${text || "Lỗi dịch vụ"}`
+      };
+    }
+
+    const bodyText = await response.text().catch(() => "");
+    // Google Web App can return error messages inside a successful 200 HTTP response if the script caught an error.
+    // E.g., ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": "Exception: ..." }))
+    try {
+      const parsed = JSON.parse(bodyText);
+      if (parsed && (parsed.status === "error" || parsed.success === false)) {
+        return {
+          success: false,
+          status: response.status,
+          message: `Lỗi từ Google Apps Script: ${parsed.message || "Không thể lưu vào Sheet"}`
+        };
+      }
+    } catch {
+      // Not a JSON response or failed to parse, but HTTP status was OK.
+    }
+
     console.log(`Google Sheet simple request sent to ${webAppUrl}. Status: ${response.status}`);
-  } catch (err) {
+    return {
+      success: true,
+      status: response.status,
+      message: `Đã kết nối thành công! Google Sheet phản hồi: ${bodyText || "OK"}`
+    };
+  } catch (err: any) {
     console.error("Google Sheet simple request failed:", err);
+    return {
+      success: false,
+      message: `Lỗi kết nối mạng đến Google Apps Script. Vui lòng kiểm tra lại URL hoặc cấu hình Đã triển khai của bạn. Chi tiết: ${err.message || err.toString()}`
+    };
   }
 }
 
@@ -419,10 +457,14 @@ async function startServer() {
         estimatedBudget: 12000000,
       };
 
-      await sendGoogleSheet(webAppUrl, testLead);
-      res.json({ success: true, message: "Yêu cầu gửi thử nghiệm đã phát đi thành công! Hãy kiểm tra Google Sheet của bạn." });
-    } catch (error) {
-      res.status(500).json({ error: "Gửi thử nghiệm đi thất bại" });
+      const result = await sendGoogleSheet(webAppUrl, testLead);
+      if (result.success) {
+        res.json({ success: true, message: result.message });
+      } else {
+        res.status(400).json({ error: result.message });
+      }
+    } catch (error: any) {
+      res.status(500).json({ error: "Gửi thử nghiệm đi thất bại: " + (error.message || error.toString()) });
     }
   });
 
